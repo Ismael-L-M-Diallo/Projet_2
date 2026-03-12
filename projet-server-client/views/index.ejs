@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <h1>Mini Reddit</h1>
+
+    <h2>1. Nouvel Utilisateur</h2>
+    <form action="/users/ajout" method="POST">
+        <input type="text" name="pseudo" placeholder="Pseudo" required>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <h2>2. Nouveau Post</h2>
+    <form action="/posts/ajout" method="POST">
+        <select name="auteur" required>
+            <% users.forEach(user => { %>
+                <option value="<%= user._id %>"><%= user.pseudo %></option>
+            <% }) %>
+        </select>
+        <input type="text" name="titre" placeholder="Titre" required>
+        <input type="text" name="contenu" placeholder="Contenu" required>
+        <button type="submit">Publier</button>
+    </form>
+
+    <h2>3. Les Posts</h2>
+    
+    <form action="/" method="GET" style="margin-bottom: 20px;">
+        Filtrer par : 
+        <select name="auteurId">
+            <option value="">Tous les auteurs</option>
+            <% users.forEach(user => { %>
+                <option value="<%= user._id %>" <%= filtreActuel == user._id ? 'selected' : '' %>>
+                    <%= user.pseudo %>
+                </option>
+            <% }) %>
+        </select>
+        <button type="submit">Filtrer</button>
+    </form>
+
+    <ul>
+        <% posts.forEach(post => { %>
+            <li style="margin-bottom: 15px;">
+                <strong><%= post.titre %></strong> 
+                (par <%= post.auteur ? post.auteur.pseudo : 'Inconnu' %>) 
+                - Votes : <%= post.votes %>
+                
+                <p><%= post.contenu %></p>
+                
+                <form action="/posts/modifier/<%= post._id %>" method="POST" style="display:inline;">
+                    <input type="text" name="nouveauContenu" placeholder="Modifier le texte" required>
+                    <button type="submit">Modifier</button>
+                </form>
+
+                <form action="/posts/upvote/<%= post._id %>" method="POST" style="display:inline;">
+                    <button type="submit">Upvote</button>
+                </form>
+
+                <form action="/posts/supprimer/<%= post._id %>" method="POST" style="display:inline;">
+                    <button type="submit">Supprimer</button>
+                </form>
+            </li>
+        <% }) %>
+    </ul>
+</body>
+</html>
