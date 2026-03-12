@@ -54,15 +54,16 @@
                 
                 <p><%= post.contenu %></p>
                 
-                <% if (typeof utilisateurConnecte !== 'undefined' && utilisateurConnecte) { %>
+               
                     
+                <% if (idConnecte) { %>
                     <form action="/posts/upvote/<%= post._id %>" method="POST" style="display:inline;">
-                        <input type="hidden" name="votantId" value="<%= utilisateurConnecte._id %>">
-                        
-                        <button type="submit">⬆️ Upvote</button>
+                        <input type="hidden" name="votantId" value="<%= idConnecte %>">
+                        <button type="submit">Upvote</button>
                     </form>
-
                 <% } %>
+
+               
 
                 <% if (idConnecte && post.auteur && idConnecte == post.auteur._id.toString()) { %>
                     <form action="/posts/modifier/<%= post._id %>" method="POST" style="display:inline;">
