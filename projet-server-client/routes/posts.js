@@ -2,48 +2,52 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/Post');
 
-// Ajouter un post
 router.post('/ajout', async (req, res) => {
+    if (!req.session.userId) return res.send("Non autorisé");
     try {
-        const { titre, contenu, auteur } = req.body;
-        const nouveauPost = new Post({ titre, contenu, auteur });
+        const nouveauPost = new Post({ 
+            titre: req.body.titre, 
+            contenu: req.body.contenu, 
+            auteur: req.session.userId 
+        });
         await nouveauPost.save();
         res.redirect('/');
-    } catch (err) {
-        res.status(500).send("Erreur lors de l'ajout du post");
-    }
+    } catch (err) { res.status(500).send("Erreur"); }
 });
 
-// Supprimer un post
+router.post('/modifier/:id', async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (post.auteur.toString() === req.session.userId) {
+            post.contenu = req.body.nouveauContenu;
+            await post.save();
+        }
+        res.redirect('/');
+    } catch (err) { res.status(500).send("Erreur"); }
+});
+
+// Supprimer (On vérifie l'auteur)
 router.post('/supprimer/:id', async (req, res) => {
     try {
-        await Post.findByIdAndDelete(req.params.id);
+        const post = await Post.findById(req.params.id);
+        if (post.auteur.toString() === req.session.userId) {
+            await Post.findByIdAndDelete(req.params.id);
+        }
         res.redirect('/');
-    } catch (err) {
-        res.status(500).send("Erreur lors de la suppression");
-    }
+    } catch (err) { res.status(500).send("Erreur"); }
 });
 
-// Voter pour un post (Upvote - Bonus très Reddit !)
+
 router.post('/upvote/:id', async (req, res) => {
     try {
-        // $inc permet d'incrémenter une valeur dans MongoDB
+        if (!req.body.votantId) {
+            return res.send("Erreur : Les votes anonymes ne sont pas autorisés ! Rétournez en arrière.");
+        }
+
         await Post.findByIdAndUpdate(req.params.id, { $inc: { votes: 1 } });
         res.redirect('/');
     } catch (err) {
         res.status(500).send("Erreur lors du vote");
-    }
-});
-
-
-// Modifier le contenu d'un post
-router.post('/modifier/:id', async (req, res) => {
-    try {
-        // On cherche le post par son ID et on remplace son "contenu" par ce qui a été tapé
-        await Post.findByIdAndUpdate(req.params.id, { contenu: req.body.nouveauContenu });
-        res.redirect('/');
-    } catch (err) {
-        res.status(500).send("Erreur lors de la modification");
     }
 });
 
